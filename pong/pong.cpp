@@ -158,8 +158,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			if (rt)
 				invert = !invert;
 
-			if (pos[0].y < 10 || pos[0].y > heightx - 10 || rt)
+			if (pos[0].y < 10 || pos[0].y > heightx - 10 || rt) {
+				circle.setPosition(pos[1]);
 				ballangle = 360 - ballangle;
+			}
 
 			pinlines = cst;
 
