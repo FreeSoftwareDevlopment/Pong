@@ -4,16 +4,6 @@
 #define XHELPER_API __declspec(dllimport)
 #endif
 
-/*
-class XHELPER_API Cxhelper {
-public:
-	Cxhelper(void);
-
-};
-
-extern XHELPER_API int nxhelper;
-
-XHELPER_API int fnxhelper(void);*/
 
 XHELPER_API int random(unsigned int max);
 XHELPER_API void rInit();

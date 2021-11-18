@@ -1,22 +1,6 @@
 #include "framework.h"
 #include "include/xhelper.h"
 
-
-/*
-XHELPER_API int nxhelper=0;
-
-// Dies ist ein Beispiel für eine exportierte Funktion.
-XHELPER_API int fnxhelper(void)
-{
-	return 0;
-}
-
-// Dies ist der Konstruktor einer Klasse, die exportiert wurde.
-Cxhelper::Cxhelper()
-{
-	return;
-}
-*/
 long long milliseconds_now() {
 	static LARGE_INTEGER s_frequency;
 	static BOOL s_use_qpc = QueryPerformanceFrequency(&s_frequency);
