@@ -11,9 +11,11 @@
 
 using namespace sf;
 
-std::string createHelpText(bool muted) {
+std::string createHelpText(bool muted, int *score) {
 	return std::string("Keys:\n") + std::string(muted ? "Music" : "Mute") +
-		std::string(": M  \n\nPlayer 1:\n\tUp: W\n\tDown: S\n\nPlayer 2:\n\tUp: O\n\tDown: L\n\nExit: ESC");
+		std::string(": M  \n\nPlayer 1:\n\tUp: W\n\tDown: S\n\nPlayer 2:\n\tUp: O\n\tDown: L\n\nExit: ESC\n\nScore:\n\tP1: ")
+		+ std::to_string(score[0]) +
+		std::string("\n\tP2: ") + std::to_string(score[1]);
 }
 
 bool detectCollision(const Vector2f& centerOfCircle, const Vector2f& posOfObj, bool p1) {
@@ -35,8 +37,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 	RenderWindow window(VideoMode(size[0], size[1]), L"Pong - \uAC8C\uC784");
 	HWND windowhandle = window.getSystemHandle();
-	
-	
+
+
 	/*RANDOM INIT*/
 	rInit();
 
@@ -44,6 +46,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		MessageBoxA(windowhandle, "OOPS, ONE INSTANCE OF \"Pong\" already running,\nClose this Version before start a new", "Pong", MB_OK | MB_ICONHAND | MB_TOPMOST);
 		return 1;
 	}
+	int score[2]{ 0,0 };
 
 	CircleShape circle(10);
 	{
@@ -69,7 +72,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		tbmute.setFont(RobotoBlack);
 		tbmute.setPosition(0, 0);
 		tbmute.setCharacterSize(10);
-		tbmute.setString(createHelpText(false).c_str());
+		tbmute.setString("Loading...");
 		tbmute.setFillColor(Color::Red);
 		d.push_back(&tbmute);
 
@@ -116,7 +119,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	ballTime.beginTime();
 	fpsTime.beginTime();
 
-	bool invert{ false }, cst{ false }, pinlines{ false };
+	bool invert{ false }, cst{ false }, pinlines{ false }, change{ true };
+	bool failedc[]{ false, false };
 
 	while (window.isOpen()) {
 		window.clear(Color::Black);
@@ -141,10 +145,16 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 
 			pos[0] = circle.getPosition();
-			if (pos[0].x < 10 || pos[0].x>widthx - 10) {
+
+			failedc[0] = pos[0].x < 10;
+			failedc[1] = pos[0].x > widthx - 10;
+			if (failedc[0] || failedc[1]) {
 				pos[0] = Vector2f((0.5 * widthx), (0.5 * heightx));
 				rballangle(&ballangle);
 				circle.setPosition(pos[0]);
+
+				score[failedc[0]?0:1]--;
+				change = true;
 			}
 
 			std::future<bool>
@@ -155,8 +165,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 				fut2.wait();
 			cst = fut.get() || fut2.get();
 			bool rt = cst && cst != pinlines;
-			if (rt)
+			if (rt) {
 				invert = !invert;
+				score[invert ? 0 : 1]++;
+				change = true;
+			}
 
 			if (pos[0].y < 10 || pos[0].y > heightx - 10 || rt) {
 				circle.setPosition(pos[1]);
@@ -176,7 +189,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			if (r != pr && r) {
 				mciSendStringA(muted ? "resume mp3" : "pause mp3", NULL, 0, NULL);
 				muted = !muted;
-				tbmute.setString(createHelpText(muted).c_str());
+				change = true;
+			}
+			if (change) {
+				tbmute.setString(createHelpText(muted, &score[0]).c_str());
+				change = false;
 			}
 			pr = r;
 		}
