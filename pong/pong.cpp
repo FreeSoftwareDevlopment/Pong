@@ -11,7 +11,7 @@
 
 using namespace sf;
 
-std::string createHelpText(bool muted, int *score) {
+std::string createHelpText(bool muted, int* score) {
 	return std::string("Keys:\n") + std::string(muted ? "Music" : "Mute") +
 		std::string(": M  \n\nPlayer 1:\n\tUp: W\n\tDown: S\n\nPlayer 2:\n\tUp: O\n\tDown: L\n\nExit: ESC\n\nScore:\n\tP1: ")
 		+ std::to_string(score[0]) +
@@ -153,7 +153,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 				rballangle(&ballangle);
 				circle.setPosition(pos[0]);
 
-				score[failedc[0]?0:1]--;
+				score[failedc[0] ? 0 : 1]--;
 				change = true;
 			}
 
