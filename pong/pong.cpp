@@ -43,7 +43,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	rInit();
 
 	if (shouldClose(appguid)) {
-		MessageBoxA(windowhandle, "OOPS, ONE INSTANCE OF \"Pong\" already running,\nClose this Version before start a new", "Pong", MB_OK | MB_ICONHAND | MB_TOPMOST);
+		MessageBoxA(windowhandle, "OOPS, ONE INSTANCE OF \"Pong\" already running,\nClose this Version before start a new", "Pong",
+			MB_OK | MB_ICONHAND | MB_TOPMOST);
 		return 1;
 	}
 	int score[2]{ 0,0 };
