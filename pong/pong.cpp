@@ -201,8 +201,16 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		window.display();
 
 		{
-			xhelp.pongmove(&pongHigth[0], Keyboard::isKeyPressed(Keyboard::Key::W), Keyboard::isKeyPressed(Keyboard::Key::S), pongTime.getTimer() * pongspeed);
-			xhelp.pongmove(&pongHigth[1], Keyboard::isKeyPressed(Keyboard::Key::O), Keyboard::isKeyPressed(Keyboard::Key::L), pongTime.getLast() * pongspeed);
+			xhelp.pongmove(&pongHigth[0],
+				Keyboard::isKeyPressed(Keyboard::Key::W),
+				Keyboard::isKeyPressed(Keyboard::Key::S),
+				pongTime.getTimer() * pongspeed);
+
+			xhelp.pongmove(&pongHigth[1],
+				Keyboard::isKeyPressed(Keyboard::Key::O),
+				Keyboard::isKeyPressed(Keyboard::Key::L),
+				pongTime.getLast() * pongspeed);
+
 			pongTime.beginTime();
 		}
 
