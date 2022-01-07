@@ -1,3 +1,4 @@
+#define useAudio
 #include "includes.h"
 
 #define pongspeed 400
@@ -93,8 +94,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		d.push_back(&p2);
 	}
 
-	mciSendStringA("open \"ov\" type mpegvideo alias mp3", NULL, 0, NULL);
-	mciSendStringA("play mp3 repeat", NULL, 0, NULL);
+#ifdef useAudio
+	bool playAudio = std::filesystem::exists("ov");
+	if (playAudio) {
+		mciSendStringA("open \"ov\" type mpegvideo alias mp3", NULL, 0, NULL);
+		mciSendStringA("play mp3 repeat", NULL, 0, NULL);
+	}
+#endif
 
 	bool r = false, muted = false, pr = false;
 
@@ -186,7 +192,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		{
 			bool r = Keyboard::isKeyPressed(Keyboard::Key::M);
 			if (r != pr && r) {
-				mciSendStringA(muted ? "resume mp3" : "pause mp3", NULL, 0, NULL);
+#ifdef useAudio
+				if (playAudio)
+					mciSendStringA(muted ? "resume mp3" : "pause mp3", NULL, 0, NULL);
+#endif
 				muted = !muted;
 				change = true;
 			}
@@ -223,8 +232,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		pos[1] = pos[0];//STORE OLD POS IN STORE 1
 		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
 	}
-
-	mciSendStringA("close mp3", NULL, 0, NULL);
+#ifdef useAudio
+	if (playAudio)
+		mciSendStringA("close mp3", NULL, 0, NULL);
+#endif
 
 	renderThread.join();
 
