@@ -10,8 +10,12 @@ using namespace sf;
 void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps);
 
 std::string createHelpText(bool muted, int* score) {
-	return std::string("Keys:\n") + std::string(muted ? "Music" : "Mute") +
-		std::string(": M  \n\nPlayer 1:\n\tUp: W\n\tDown: S\n\nPlayer 2:\n\tUp: O\n\tDown: L\n\nExit: ESC\n\nScore:\n\tP1: ")
+	return std::string("Keys:\n") +
+#ifdef useAudio
+		std::string(muted ? "Music" : "Mute") +
+		std::string(": M  \n") + 
+#endif
+		std::string("\nPlayer 1:\n\tUp: W\n\tDown: S\n\nPlayer 2:\n\tUp: O\n\tDown: L\n\nExit: ESC\n\nScore:\n\tP1: ")
 		+ std::to_string(score[0]) +
 		std::string("\n\tP2: ") + std::to_string(score[1]);
 }
