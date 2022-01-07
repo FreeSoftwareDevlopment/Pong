@@ -126,7 +126,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	ballTime.beginTime();
 	fpsTime.beginTime();
 
-	bool invert{ false }, cst{ false }, pinlines{ false }, change{ true };
+	bool invert{ false }, cst{ false }, pinlines{ false }, change{ true }, keyboard{ true };
 	bool failedc[]{ false, false };
 
 	std::atomic<double> fps;
@@ -137,6 +137,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	std::thread renderThread(renderThreadp, &window, &d, &fps);
 
 	while (window.isOpen()) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
+		keyboard = GetFocus() == windowhandle; //ENSURE WINDOW IS FOCUSED FOR KEYBOARD
 		text.setString(
 			std::string("RPS: ") + std::to_string((int)roundn(1.f / fpsTime.getTimer())) +
 			std::string("\nFPS: ") + std::to_string((int)roundn(1.f / fps.load()))
@@ -196,7 +198,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		}
 #ifdef useAudio
 		{
-			bool r = Keyboard::isKeyPressed(Keyboard::Key::M);
+			bool r = Keyboard::isKeyPressed(Keyboard::Key::M) && keyboard;
 			if (r != pr && r) {
 				if (playAudio)
 					mciSendStringA(muted ? "resume mp3" : "pause mp3", NULL, 0, NULL);
@@ -213,20 +215,20 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		}
 		{
 			xhelp.pongmove(&pongHigth[0],
-				Keyboard::isKeyPressed(Keyboard::Key::W),
-				Keyboard::isKeyPressed(Keyboard::Key::S),
+				Keyboard::isKeyPressed(Keyboard::Key::W) && keyboard,
+				Keyboard::isKeyPressed(Keyboard::Key::S) && keyboard,
 				pongTime.getTimer() * pongspeed);
 
 			xhelp.pongmove(&pongHigth[1],
-				Keyboard::isKeyPressed(Keyboard::Key::O),
-				Keyboard::isKeyPressed(Keyboard::Key::L),
+				Keyboard::isKeyPressed(Keyboard::Key::O) && keyboard,
+				Keyboard::isKeyPressed(Keyboard::Key::L) && keyboard,
 				pongTime.getLast() * pongspeed);
 
 			pongTime.beginTime();
 		}
 
 		{
-			if (Keyboard::isKeyPressed(Keyboard::Key::Escape)) {
+			if (Keyboard::isKeyPressed(Keyboard::Key::Escape) && keyboard) {
 				window.close();
 			}
 			Event event;
@@ -236,8 +238,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 		}
 		pos[1] = pos[0];//STORE OLD POS IN STORE 1
-		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
-}
+	}
 #ifdef useAudio
 	if (playAudio)
 		mciSendStringA("close mp3", NULL, 0, NULL);
