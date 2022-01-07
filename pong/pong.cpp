@@ -1,4 +1,6 @@
 #define useAudio
+//UNCOMMENT THE NEXT LINE TO DISABLE AUDIO FOR YOUR COMPILED VERSION
+//#undef useAudio
 #include "includes.h"
 
 #define pongspeed 400
@@ -13,7 +15,7 @@ std::string createHelpText(bool muted, int* score) {
 	return std::string("Keys:\n") +
 #ifdef useAudio
 		std::string(muted ? "Music" : "Mute") +
-		std::string(": M  \n") + 
+		std::string(": M  \n") +
 #endif
 		std::string("\nPlayer 1:\n\tUp: W\n\tDown: S\n\nPlayer 2:\n\tUp: O\n\tDown: L\n\nExit: ESC\n\nScore:\n\tP1: ")
 		+ std::to_string(score[0]) +
@@ -202,13 +204,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 				muted = !muted;
 				change = true;
 			}
-			if (change) {
-				tbmute.setString(createHelpText(muted, &score[0]).c_str());
-				change = false;
-			}
 			pr = r;
 		}
 #endif
+		if (change) {
+			tbmute.setString(createHelpText(muted, &score[0]).c_str());
+			change = false;
+		}
 		{
 			xhelp.pongmove(&pongHigth[0],
 				Keyboard::isKeyPressed(Keyboard::Key::W),
@@ -235,7 +237,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		}
 		pos[1] = pos[0];//STORE OLD POS IN STORE 1
 		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
-	}
+}
 #ifdef useAudio
 	if (playAudio)
 		mciSendStringA("close mp3", NULL, 0, NULL);
