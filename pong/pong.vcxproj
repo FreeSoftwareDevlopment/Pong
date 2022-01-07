@@ -149,6 +149,7 @@
     <ClCompile Include="pong.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="includes.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,15 +1,12 @@
-#include <SFML/Graphics.hpp> /*MUß OBEN SEIN*/
-#include <Windows.h>
-#include <string>
-#include <vector>
-#include <xhelper.h>
-#include <future>
+#include "includes.h"
 
 #define pongspeed 400
 #define ballspeed 421
 #define appguid "{03878e53-d462-4c67-9b36-ec7192f49a8b}" /*POWERED BY https://www.guidgen.com/*/
 
 using namespace sf;
+
+void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps);
 
 std::string createHelpText(bool muted, int* score) {
 	return std::string("Keys:\n") + std::string(muted ? "Music" : "Mute") +
@@ -37,7 +34,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 	RenderWindow window(VideoMode(size[0], size[1]), L"Pong - \uAC8C\uC784");
 	HWND windowhandle = window.getSystemHandle();
-
 
 	/*RANDOM INIT*/
 	rInit();
@@ -97,8 +93,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		d.push_back(&p2);
 	}
 
-	window.setFramerateLimit(420);
-
 	mciSendStringA("open \"ov\" type mpegvideo alias mp3", NULL, 0, NULL);
 	mciSendStringA("play mp3 repeat", NULL, 0, NULL);
 
@@ -123,9 +117,18 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	bool invert{ false }, cst{ false }, pinlines{ false }, change{ true };
 	bool failedc[]{ false, false };
 
+	std::atomic<double> fps;
+	fps.store(0);
+
+	//START RENDER THREAD
+	window.setActive(false);
+	std::thread renderThread(renderThreadp, &window, &d, &fps);
+
 	while (window.isOpen()) {
-		window.clear(Color::Black);
-		text.setString(std::string("FPS: ") + std::to_string((int)roundn(1.f / fpsTime.getTimer())));
+		text.setString(
+			std::string("RPS: ") + std::to_string((int)roundn(1.f / fpsTime.getTimer())) +
+			std::string("\nFPS: ") + std::to_string((int)roundn(1.f / fps.load()))
+		);
 		fpsTime.beginTime();
 
 		{
@@ -178,11 +181,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 
 			pinlines = cst;
-
-			//RENDER ALL
-			for (unsigned int x{ 0 }; x < d.size(); x++) {
-				window.draw(*d[x]);
-			}
 		}
 
 		{
@@ -198,9 +196,6 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 			pr = r;
 		}
-
-		window.display();
-
 		{
 			xhelp.pongmove(&pongHigth[0],
 				Keyboard::isKeyPressed(Keyboard::Key::W),
@@ -226,10 +221,33 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 		}
 		pos[1] = pos[0];//STORE OLD POS IN STORE 1
+		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
 	}
 
 	mciSendStringA("close mp3", NULL, 0, NULL);
 
+	renderThread.join();
+
 	return 0;
 }
 
+void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps) {
+	window->setActive(true);
+	timer fpsTime;
+	fpsTime.beginTime();
+
+	window->setFramerateLimit(420);
+	// the rendering loop
+	while (window->isOpen())
+	{
+		window->clear(Color::Black);
+		myfps->store(fpsTime.getTimer());
+		fpsTime.beginTime();
+		//RENDER ALL
+		for (unsigned int x{ 0 }; x < d->size(); x++) {
+			window->draw(*(*d)[x]);
+		}
+		// end the current frame
+		window->display();
+	}
+}

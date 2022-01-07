@@ -1,5 +1,8 @@
 #include "framework.h"
 #include "include/xhelper.h"
+#ifndef ndo
+#include <random>
+#endif
 
 long long milliseconds_now() {
 	static LARGE_INTEGER s_frequency;
@@ -15,7 +18,15 @@ long long milliseconds_now() {
 }
 
 XHELPER_API void rInit() {
-	srand((unsigned)time(0));
+#ifndef ndo
+	std::random_device rd;
+	std::uniform_int_distribution<int> dist(0, 20);
+#endif
+	srand((unsigned)time(0)
+#ifndef ndo
+		+ dist(rd)
+#endif
+	);
 }
 XHELPER_API int random(unsigned int max) {
 	return rand() % max;
