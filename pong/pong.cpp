@@ -192,14 +192,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 			pinlines = cst;
 		}
-
+#ifdef useAudio
 		{
 			bool r = Keyboard::isKeyPressed(Keyboard::Key::M);
 			if (r != pr && r) {
-#ifdef useAudio
 				if (playAudio)
 					mciSendStringA(muted ? "resume mp3" : "pause mp3", NULL, 0, NULL);
-#endif
+
 				muted = !muted;
 				change = true;
 			}
@@ -209,6 +208,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 			pr = r;
 		}
+#endif
 		{
 			xhelp.pongmove(&pongHigth[0],
 				Keyboard::isKeyPressed(Keyboard::Key::W),
