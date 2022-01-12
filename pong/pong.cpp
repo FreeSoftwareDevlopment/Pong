@@ -127,8 +127,13 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	ballTime.beginTime();
 	fpsTime.beginTime();
 
-	bool invert{ false }, cst{ false }, pinlines{ false }, change{ true }, keyboard{ true };
-	bool failedc[]{ false, false };
+	bool invert{ false },
+		cst{ false },
+		pinlines{ false },
+		change{ true },
+		keyboard{ true };
+	bool failedc[]
+	{ false, false };
 
 	std::atomic<double> fps;
 	fps.store(0);
@@ -177,8 +182,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			}
 
 			std::future<bool>
-				fut = std::async(detectCollision, pos[0], p1.getPosition(), true),
-				fut2 = std::async(detectCollision, pos[0], p2.getPosition(), false);
+				fut = std::async(detectCollision,
+					pos[0], p1.getPosition(), true),
+				fut2 = std::async(detectCollision,
+					pos[0], p2.getPosition(), false);
 			fut.wait();
 			if (!fut2._Is_ready())
 				fut2.wait();
