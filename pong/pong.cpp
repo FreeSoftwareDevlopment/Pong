@@ -1,6 +1,6 @@
 #define useAudio
-//UNCOMMENT THE NEXT LINE TO DISABLE AUDIO FOR YOUR COMPILED VERSION
-//#undef useAudio
+// UNCOMMENT THE NEXT LINE TO DISABLE AUDIO FOR YOUR COMPILED VERSION
+// #undef useAudio
 #include "includes.h"
 
 #define pongspeed 400
