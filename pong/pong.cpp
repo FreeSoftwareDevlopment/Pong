@@ -9,10 +9,17 @@
 
 using namespace sf;
 
-void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps);
+void renderThreadp(
+	RenderWindow* window,
+	std::vector<Drawable*>* d,
+	std::atomic<double>* myfps,
+	bool* record,
+	Shape* dn);
 
-std::string createHelpText(bool muted, int* score) {
+std::string createHelpText(bool muted, int* score, bool record = false) {
 	return std::string("Keys:\n") +
+		std::string((!record) ? "Record" : "Stop Record") +
+		std::string(": R  \n") +
 #ifdef useAudio
 		std::string(muted ? "Music" : "Mute") +
 		std::string(": M  \n") +
@@ -61,6 +68,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		circle.setOutlineColor(Color::White);
 		d.push_back(&circle);
 		circle.setScale(Vector2f(.4f, .4f));
+	}
+	CircleShape c3(20);
+	{
+		c3.setOrigin(25, 25);
+		c3.setPosition(Vector2f(widthx, heightx));
 	}
 
 	sf::Font RobotoBlack;
@@ -134,15 +146,25 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		keyboard{ true };
 	bool failedc[]
 	{ false, false };
+	bool record[]
+	{ false, false, false };
 
 	std::atomic<double> fps;
 	fps.store(0);
 
 	//START RENDER THREAD
 	window.setActive(false);
-	std::thread renderThread(renderThreadp, &window, &d, &fps);
+	std::thread renderThread(renderThreadp, &window, &d, &fps, &record[0], &c3);
 
 	while (window.isOpen()) {
+		record[1] = Keyboard::isKeyPressed(Keyboard::Key::R);
+		if (record[1] != record[2]) {
+			if (record[1]) {
+				record[0] = !record[0];
+			}
+			record[2] = record[1];
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
 		keyboard = GetFocus() == windowhandle; //ENSURE WINDOW IS FOCUSED FOR KEYBOARD
 		text.setString(
@@ -218,7 +240,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		}
 #endif
 		if (change) {
-			tbmute.setString(createHelpText(muted, &score[0]).c_str());
+			tbmute.setString(createHelpText(muted, &score[0], record[0]).c_str());
 			change = false;
 		}
 		{
@@ -257,15 +279,49 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	return 0;
 }
 
-void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps) {
+void renderThreadp(
+	RenderWindow* window,
+	std::vector<Drawable*>* d,
+	std::atomic<double>* myfps,
+	bool* record = nullptr,
+	Shape* dn = nullptr) {
+	//PREPARE RECORD
+	const char recordOutput[]{ "./tmp" };
+	if (!std::filesystem::exists(recordOutput)) {
+		std::filesystem::create_directory(recordOutput);
+	}
+	bool preco = (record != nullptr ? *record : false),
+		featureRec = record != nullptr;
+	std::vector<Texture> records;
+	//END PREPARE RECORD
+
+	//GL CONTEXT
 	window->setActive(true);
 	timer fpsTime;
 	fpsTime.beginTime();
 
-	window->setFramerateLimit(420);
+	window->setFramerateLimit(preco ? 24 : 400);
 	// the rendering loop
 	while (window->isOpen())
 	{
+		if (featureRec) {
+			if (preco != *record) {
+				preco = *record;
+				window->setFramerateLimit(preco ? 24 : 400);
+			}
+			if (preco) {
+				if (records.max_size() >= records.size() + 1) {
+					sf::Vector2u windowSize = window->getSize();
+					sf::Texture texture;
+					texture.create(windowSize.x, windowSize.y);
+					texture.update(*window);
+					records.push_back(texture);
+				}
+				else
+					*record = false;
+			}
+		}
+
 		window->clear(Color::Black);
 		myfps->store(fpsTime.getTimer());
 		fpsTime.beginTime();
@@ -273,7 +329,44 @@ void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<
 		for (unsigned int x{ 0 }; x < d->size(); x++) {
 			window->draw(*(*d)[x]);
 		}
+		if (dn != nullptr) {
+			dn->setFillColor(
+				dn->getFillColor() == Color::Red ? Color::Blue : Color::Red
+			);
+			window->draw(*dn);
+		}
 		// end the current frame
 		window->display();
+	}
+
+	//SAVE RECORDED IMAGES
+	if (records.size() > 0) {
+		const char rp[] = " Recorded Pictures";
+		MessageBoxA(NULL,
+			("We need to Save your " + std::to_string(records.size()) + rp).c_str(),
+			"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+		size_t ds = MAX_PATH * sizeof(char);
+		char* dirname = (char*)malloc(ds);
+		if (dirname == nullptr) {
+			MessageBoxA(NULL,
+				("Fail to Save your " + std::to_string(records.size()) + rp).c_str(),
+				"Pong", MB_OK | MB_ICONHAND | MB_TOPMOST);
+			return;
+		}
+		memset(dirname, 0, ds);
+		if (GetTempFileNameA(recordOutput, "rec", 0, dirname) != 0) {
+			std::filesystem::remove(dirname);
+			std::filesystem::create_directory(dirname);
+			auto dn = std::string(dirname) + "\\";
+			free(dirname);
+			for (unsigned int x{ 0 }; x < records.size(); x++) {
+				std::string filename{ dn + std::to_string(x) + ".png" };
+				Image i = records[x].copyToImage();
+				i.saveToFile(filename.c_str());
+			}
+			MessageBoxA(NULL,
+				("Saved all your " + std::to_string(records.size()) + rp).c_str(),
+				"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+		}
 	}
 }
