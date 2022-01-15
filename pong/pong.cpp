@@ -9,10 +9,20 @@
 
 using namespace sf;
 
-void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps);
+const char gm[] = "Pong";
 
-std::string createHelpText(bool muted, int* score) {
+void renderThreadp(
+	RenderWindow* window,
+	std::vector<Drawable*>* d,
+	std::atomic<double>* myfps,
+	const int* size,
+	bool* record,
+	Shape* dn);
+
+std::string createHelpText(bool muted, int* score, bool record = false) {
 	return std::string("Keys:\n") +
+		std::string((!record) ? "Record" : "Stop Record") +
+		std::string(": R  \n") +
 #ifdef useAudio
 		std::string(muted ? "Music" : "Mute") +
 		std::string(": M  \n") +
@@ -48,7 +58,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	if (shouldClose(appguid)) {
 		MessageBoxA(windowhandle,
 			"OOPS, ONE INSTANCE OF \"Pong\" already running,\nClose this Version before start a new",
-			"Pong", MB_OK | MB_ICONHAND | MB_TOPMOST);
+			gm, MB_OK | MB_ICONHAND | MB_TOPMOST);
 		return 1;
 	}
 	int score[2]{ 0,0 };
@@ -61,6 +71,11 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		circle.setOutlineColor(Color::White);
 		d.push_back(&circle);
 		circle.setScale(Vector2f(.4f, .4f));
+	}
+	CircleShape c3(20);
+	{
+		c3.setOrigin(25, 25);
+		c3.setPosition(Vector2f(widthx, heightx));
 	}
 
 	sf::Font RobotoBlack;
@@ -134,15 +149,25 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		keyboard{ true };
 	bool failedc[]
 	{ false, false };
+	bool record[]
+	{ false, false, false };
 
 	std::atomic<double> fps;
 	fps.store(0);
 
 	//START RENDER THREAD
 	window.setActive(false);
-	std::thread renderThread(renderThreadp, &window, &d, &fps);
+	std::thread renderThread(renderThreadp, &window, &d, &fps, &size[0], &record[0], &c3);
 
 	while (window.isOpen()) {
+		record[1] = Keyboard::isKeyPressed(Keyboard::Key::R);
+		if (record[1] != record[2]) {
+			if (record[1]) {
+				record[0] = !record[0];
+			}
+			record[2] = record[1];
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //TO SLOW DOWN RUNTIME (ELSE IT RUNS TO FAST)
 		keyboard = GetFocus() == windowhandle; //ENSURE WINDOW IS FOCUSED FOR KEYBOARD
 		text.setString(
@@ -218,7 +243,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		}
 #endif
 		if (change) {
-			tbmute.setString(createHelpText(muted, &score[0]).c_str());
+			tbmute.setString(createHelpText(muted, &score[0], record[0]).c_str());
 			change = false;
 		}
 		{
@@ -257,15 +282,52 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	return 0;
 }
 
-void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<double>* myfps) {
+void renderThreadp(
+	RenderWindow* window,
+	std::vector<Drawable*>* d,
+	std::atomic<double>* myfps,
+	const int* size,
+	bool* record = nullptr,
+	Shape* dn = nullptr) {
+	//PREPARE RECORD
+	const char recordOutput[]{ "./tmp" };
+	if (!std::filesystem::exists(recordOutput)) {
+		std::filesystem::create_directory(recordOutput);
+	}
+	bool preco = (record != nullptr ? *record : false),
+		featureRec = record != nullptr;
+	std::vector<Texture> records;
+	//END PREPARE RECORD
+
+	//GL CONTEXT
 	window->setActive(true);
 	timer fpsTime;
 	fpsTime.beginTime();
 
-	window->setFramerateLimit(420);
+	const int fps[]{ 25, 400 };
+
+	window->setFramerateLimit(fps[preco ? 0 : 1]);
 	// the rendering loop
 	while (window->isOpen())
 	{
+		if (featureRec) {
+			if (preco != *record) {
+				preco = *record;
+				window->setFramerateLimit(fps[preco ? 0 : 1]);
+			}
+			if (preco) {
+				if (records.max_size() >= records.size() + 1) {
+					sf::Vector2u windowSize = window->getSize();
+					sf::Texture texture;
+					texture.create(windowSize.x, windowSize.y);
+					texture.update(*window);
+					records.push_back(texture);
+				}
+				else
+					*record = false;
+			}
+		}
+
 		window->clear(Color::Black);
 		myfps->store(fpsTime.getTimer());
 		fpsTime.beginTime();
@@ -273,7 +335,79 @@ void renderThreadp(RenderWindow* window, std::vector<Drawable*>* d, std::atomic<
 		for (unsigned int x{ 0 }; x < d->size(); x++) {
 			window->draw(*(*d)[x]);
 		}
+		if (dn != nullptr) {
+			dn->setFillColor(
+				dn->getFillColor() == Color::Red ? Color::Blue : Color::Red
+			);
+			window->draw(*dn);
+		}
 		// end the current frame
 		window->display();
+	}
+
+	//SAVE RECORDED IMAGES
+	if (records.size() > 0) {
+		const char rp[] = " Recorded Video";
+		if (MessageBoxA(NULL,
+			("We need to Save your " + std::to_string(records.size()) + rp +
+				"\nThis can take some time").c_str(),
+			gm, MB_OKCANCEL
+			| MB_DEFBUTTON2 |
+			MB_ICONINFORMATION |
+			MB_TOPMOST) == IDCANCEL)
+			return;
+
+		size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
+		unsigned char* calced = (unsigned char*)malloc(sizevid * 3);
+		VideoCapture vc;
+		vc.Init(size[0], size[1], 24, 400000);
+		for (unsigned int x{ 0 }; x < records.size(); x++) {
+			Image i = records[x].copyToImage();
+			const unsigned char* ux = i.getPixelsPtr();
+			//RGBA TO RGB:
+			for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
+				if (xct >= 3) {
+					xct = 0;
+					continue;
+				}
+				calced[srx] = ux[xr];
+				xct++;
+				srx++;
+			}
+
+			vc.AddFrame(calced);
+		}
+		free(calced);
+		vc.Finish();
+
+		//MOVE
+		auto dp = std::string(getDocPath()),
+			np = std::string(rndst(10));
+	retryFs:
+
+		if (std::filesystem::exists(dp + "\\" + np + ".mp4")) {
+			np = rndst(16);
+			goto retryFs;
+		}
+
+		std::string cfn = (dp + "\\" + np + ".mp4");
+		const char tmpn[] = "recordTMP.mp4";
+		bool ok = false;
+		if (std::filesystem::exists(tmpn)) {
+			ok = std::filesystem::copy_file(tmpn, cfn.c_str());
+			if (ok)
+				std::filesystem::remove(tmpn);
+		}
+
+		if (ok)
+			MessageBoxA(NULL,
+				("Saved all your " + std::to_string(records.size()) + rp +
+					" to \"" + cfn + "\"").c_str(),
+				gm, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+		else
+			MessageBoxA(NULL,
+				("Failue during Save of your" + std::string(rp)).c_str(),
+				gm, MB_OK | MB_ICONHAND | MB_TOPMOST);
+		//}
 	}
 }

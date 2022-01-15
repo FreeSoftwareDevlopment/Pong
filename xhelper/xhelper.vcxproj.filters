@@ -38,6 +38,9 @@
     <ClCompile Include="math.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="xr.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="xhelper.rc">

@@ -8,6 +8,7 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
-#ifdef useAudio
 #include <filesystem>
-#endif
+#include "ffmpegImports.h"
+
+#include <fstream>

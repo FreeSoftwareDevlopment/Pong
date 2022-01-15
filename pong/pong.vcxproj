@@ -128,10 +128,13 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFML-2.5.1\include;$(SolutionDir)ffmpeg\include;$(SolutionDir)xhelper\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\xhelper.lib;sfml-graphics.lib;sfml-window.lib;Winmm.lib;sfml-system.lib;avutil.lib;avcodec.lib;avfilter.lib;avformat.lib;avdevice.lib;swscale.lib;swresample.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SFML-2.5.1\lib;$(SolutionDir)ffmpeg\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,19 +147,23 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFML-2.5.1\include;$(SolutionDir)ffmpeg\include;$(SolutionDir)xhelper\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\xhelper.lib;sfml-graphics.lib;sfml-window.lib;Winmm.lib;sfml-system.lib;avutil.lib;avcodec.lib;avfilter.lib;avformat.lib;avdevice.lib;swscale.lib;swresample.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SFML-2.5.1\lib;$(SolutionDir)ffmpeg\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="encoder.cpp" />
     <ClCompile Include="pong.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ffmpegImports.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

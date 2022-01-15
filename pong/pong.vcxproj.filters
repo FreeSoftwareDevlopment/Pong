@@ -2,10 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="pong.cpp" />
+    <ClCompile Include="encoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="includes.h" />
+    <ClInclude Include="ffmpegImports.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pong.rc" />

@@ -32,6 +32,7 @@ XHELPER_API int random(unsigned int max) {
 	return rand() % max;
 }
 
+
 XHELPER_API bool shouldClose(const char* c) {
 	//Make sure at most one instance of the tool is running
 	HANDLE hMutexOneInstance(::CreateMutexA(NULL, TRUE, c));
