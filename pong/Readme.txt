@@ -1,7 +1,7 @@
 To Enable Music, you need a mp3 file, rename it to "ov" (without .mp3) and let it in the folder of the output
 You need Visual Studio -> Pong works currenty only on 64 bit OS!
 
-
+-- You should build the Release 64x Version
 
 After Building pong, you need to copy the following DLL files from folder \ffmpeg\bin : 
 - avcodec-58.dll
@@ -18,3 +18,4 @@ and the following DLL files from folder \SFML-2.5.1\bin :
 - sfml-window-2.dll
 
 into the output folder of the Project (Propaply \x64\Release)
+
