@@ -131,7 +131,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)SFML-2.5.1\include;$(SolutionDir)xhelper\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)$(Platform)\$(Configuration)\xhelper.lib;sfml-graphics.lib;sfml-window.lib;Winmm.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)SFML-2.5.1\lib</AdditionalLibraryDirectories>
@@ -150,7 +150,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)SFML-2.5.1\include;$(SolutionDir)xhelper\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
