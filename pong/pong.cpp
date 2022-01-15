@@ -30,7 +30,7 @@ bool detectCollision(const Vector2f& centerOfCircle, const Vector2f& posOfObj, b
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-	const int size[]{ 960, 640 };/*HEIGHT, WIDTH*/
+	const int size[]{ 960, 640 };/* HEIGHT, WIDTH */
 #define widthx (float)size[0]
 #define heightx (float)size[1]
 
@@ -42,7 +42,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	RenderWindow window(VideoMode(size[0], size[1]), L"Pong - \uAC8C\uC784");
 	HWND windowhandle = window.getSystemHandle();
 
-	/*RANDOM INIT*/
+	/* RANDOM INIT */
 	rInit();
 
 	if (shouldClose(appguid)) {
