@@ -376,7 +376,7 @@ void renderThreadp(
 			for (unsigned int x{ 0 }; x < records.size(); x++) {
 				Image i = records[x].copyToImage();
 				const unsigned char* ux = i.getPixelsPtr();
-				//memcpy(e, i.getPixelsPtr(), sizevid);
+				//RGBA TO RGB:
 				for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
 					if (xct >= 3) {
 						xct = 0;
