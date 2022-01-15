@@ -9,6 +9,8 @@
 
 using namespace sf;
 
+const char gm[] = "Pong";
+
 void renderThreadp(
 	RenderWindow* window,
 	std::vector<Drawable*>* d,
@@ -56,7 +58,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	if (shouldClose(appguid)) {
 		MessageBoxA(windowhandle,
 			"OOPS, ONE INSTANCE OF \"Pong\" already running,\nClose this Version before start a new",
-			"Pong", MB_OK | MB_ICONHAND | MB_TOPMOST);
+			gm, MB_OK | MB_ICONHAND | MB_TOPMOST);
 		return 1;
 	}
 	int score[2]{ 0,0 };
@@ -347,13 +349,14 @@ void renderThreadp(
 	if (records.size() > 0) {
 		const char rp[] = " Recorded Video";
 		if (MessageBoxA(NULL,
-			("We need to Save your " + std::to_string(records.size()) + rp + 
+			("We need to Save your " + std::to_string(records.size()) + rp +
 				"\nThis can take some time").c_str(),
-			"Pong", MB_OKCANCEL
+			gm, MB_OKCANCEL
 			| MB_DEFBUTTON2 |
 			MB_ICONINFORMATION |
 			MB_TOPMOST) == IDCANCEL)
 			return;
+
 		size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
 		unsigned char* calced = (unsigned char*)malloc(sizevid * 3);
 		VideoCapture vc;
@@ -376,9 +379,35 @@ void renderThreadp(
 		}
 		free(calced);
 		vc.Finish();
-		MessageBoxA(NULL,
-			("Saved all your " + std::to_string(records.size()) + rp).c_str(),
-			"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+
+		//MOVE
+		auto dp = std::string(getDocPath()),
+			np = std::string(rndst(10));
+	retryFs:
+
+		if (std::filesystem::exists(dp + "\\" + np + ".mp4")) {
+			np = rndst(16);
+			goto retryFs;
+		}
+
+		std::string cfn = (dp + "\\" + np + ".mp4");
+		const char tmpn[] = "recordTMP.mp4";
+		bool ok = false;
+		if (std::filesystem::exists(tmpn)) {
+			ok = std::filesystem::copy_file(tmpn, cfn.c_str());
+			if (ok)
+				std::filesystem::remove(tmpn);
+		}
+
+		if (ok)
+			MessageBoxA(NULL,
+				("Saved all your " + std::to_string(records.size()) + rp +
+					" to \"" + cfn + "\"").c_str(),
+				gm, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+		else
+			MessageBoxA(NULL,
+				("Failue during Save of your" + std::string(rp)).c_str(),
+				gm, MB_OK | MB_ICONHAND | MB_TOPMOST);
 		//}
 	}
 }

@@ -4,7 +4,6 @@
 #define XHELPER_API __declspec(dllimport)
 #endif
 
-
 XHELPER_API int random(unsigned int max);
 XHELPER_API void rInit();
 XHELPER_API bool shouldClose(const char* guid);
@@ -33,3 +32,6 @@ XHELPER_API float sinn(float v);
 XHELPER_API void rballangle(int* b);
 XHELPER_API float roundn(float i);
 XHELPER_API float tanminusone(float v);
+
+XHELPER_API const char* rndst(int r);
+XHELPER_API const char* getDocPath();

@@ -10,9 +10,11 @@
 #include <algorithm>
 #include <string> 
 #include <filesystem>
+
 #pragma warning(disable : 4996)
+
 #define VIDEO_TMP_FILE "tmp.h264"
-#define FINAL_FILE_NAME "record.mp4"
+#define FINAL_FILE_NAME "recordTMP.mp4"
 
 
 using namespace std;
@@ -20,7 +22,7 @@ using namespace std;
 std::ofstream logFile;
 
 void Log(std::string str) {
-	logFile.open("Logs.txt", std::ofstream::app);
+	logFile.open("ffmpeg.log", std::ofstream::app);
 	logFile.write(str.c_str(), str.size());
 	logFile.close();
 }
