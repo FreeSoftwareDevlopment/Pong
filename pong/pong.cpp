@@ -345,55 +345,40 @@ void renderThreadp(
 
 	//SAVE RECORDED IMAGES
 	if (records.size() > 0) {
-		const char rp[] = " Recorded Pictures";
+		const char rp[] = " Recorded Video";
 		if (MessageBoxA(NULL,
-			("We need to Save your " + std::to_string(records.size()) + rp).c_str(),
+			("We need to Save your " + std::to_string(records.size()) + rp + 
+				"\nThis can take some time").c_str(),
 			"Pong", MB_OKCANCEL
 			| MB_DEFBUTTON2 |
 			MB_ICONINFORMATION |
 			MB_TOPMOST) == IDCANCEL)
 			return;
-		size_t ds = MAX_PATH * sizeof(char);
-		char* dirname = (char*)malloc(ds);
-		if (dirname == nullptr) {
-			MessageBoxA(NULL,
-				("Fail to Save your " + std::to_string(records.size()) + rp).c_str(),
-				"Pong", MB_OK | MB_ICONHAND | MB_TOPMOST);
-			return;
-		}
-		memset(dirname, 0, ds);
-		if (GetTempFileNameA(recordOutput, "rec", 0, dirname) != 0) {
-			std::filesystem::remove(dirname);
-			std::filesystem::create_directory(dirname);
-			auto dn = std::string(dirname) + "\\";
-
-			free(dirname);
-
-			size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
-			unsigned char * calced = (unsigned char*)malloc(sizevid * 3);
-			VideoCapture vc;
-			vc.Init(size[0], size[1], 24, 400000);
-			for (unsigned int x{ 0 }; x < records.size(); x++) {
-				Image i = records[x].copyToImage();
-				const unsigned char* ux = i.getPixelsPtr();
-				//RGBA TO RGB:
-				for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
-					if (xct >= 3) {
-						xct = 0;
-						continue;
-					}
-					calced[srx] = ux[xr];
-					xct++;
-					srx++;
+		size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
+		unsigned char* calced = (unsigned char*)malloc(sizevid * 3);
+		VideoCapture vc;
+		vc.Init(size[0], size[1], 24, 400000);
+		for (unsigned int x{ 0 }; x < records.size(); x++) {
+			Image i = records[x].copyToImage();
+			const unsigned char* ux = i.getPixelsPtr();
+			//RGBA TO RGB:
+			for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
+				if (xct >= 3) {
+					xct = 0;
+					continue;
 				}
-
-				vc.AddFrame(calced);
+				calced[srx] = ux[xr];
+				xct++;
+				srx++;
 			}
-			free(calced);
-			vc.Finish();
-			MessageBoxA(NULL,
-				("Saved all your " + std::to_string(records.size()) + rp).c_str(),
-				"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+
+			vc.AddFrame(calced);
 		}
+		free(calced);
+		vc.Finish();
+		MessageBoxA(NULL,
+			("Saved all your " + std::to_string(records.size()) + rp).c_str(),
+			"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+		//}
 	}
 }
