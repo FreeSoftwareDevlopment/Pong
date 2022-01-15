@@ -13,6 +13,7 @@ void renderThreadp(
 	RenderWindow* window,
 	std::vector<Drawable*>* d,
 	std::atomic<double>* myfps,
+	const int* size,
 	bool* record,
 	Shape* dn);
 
@@ -154,7 +155,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 	//START RENDER THREAD
 	window.setActive(false);
-	std::thread renderThread(renderThreadp, &window, &d, &fps, &record[0], &c3);
+	std::thread renderThread(renderThreadp, &window, &d, &fps, &size[0], &record[0], &c3);
 
 	while (window.isOpen()) {
 		record[1] = Keyboard::isKeyPressed(Keyboard::Key::R);
@@ -283,6 +284,7 @@ void renderThreadp(
 	RenderWindow* window,
 	std::vector<Drawable*>* d,
 	std::atomic<double>* myfps,
+	const int* size,
 	bool* record = nullptr,
 	Shape* dn = nullptr) {
 	//PREPARE RECORD
@@ -300,14 +302,16 @@ void renderThreadp(
 	timer fpsTime;
 	fpsTime.beginTime();
 
-	window->setFramerateLimit(preco ? 24 : 400);
+	const int fps[]{ 25, 400 };
+
+	window->setFramerateLimit(fps[preco ? 0 : 1]);
 	// the rendering loop
 	while (window->isOpen())
 	{
 		if (featureRec) {
 			if (preco != *record) {
 				preco = *record;
-				window->setFramerateLimit(preco ? 24 : 400);
+				window->setFramerateLimit(fps[preco ? 0 : 1]);
 			}
 			if (preco) {
 				if (records.max_size() >= records.size() + 1) {
@@ -362,12 +366,31 @@ void renderThreadp(
 			std::filesystem::remove(dirname);
 			std::filesystem::create_directory(dirname);
 			auto dn = std::string(dirname) + "\\";
+
 			free(dirname);
+
+			size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
+			unsigned char * calced = (unsigned char*)malloc(sizevid * 3);
+			VideoCapture vc;
+			vc.Init(size[0], size[1], 24, 400000);
 			for (unsigned int x{ 0 }; x < records.size(); x++) {
-				std::string filename{ dn + std::to_string(x) + ".png" };
 				Image i = records[x].copyToImage();
-				i.saveToFile(filename.c_str());
+				const unsigned char* ux = i.getPixelsPtr();
+				//memcpy(e, i.getPixelsPtr(), sizevid);
+				for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
+					if (xct >= 3) {
+						xct = 0;
+						continue;
+					}
+					calced[srx] = ux[xr];
+					xct++;
+					srx++;
+				}
+
+				vc.AddFrame(calced);
 			}
+			free(calced);
+			vc.Finish();
 			MessageBoxA(NULL,
 				("Saved all your " + std::to_string(records.size()) + rp).c_str(),
 				"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
