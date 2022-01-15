@@ -290,13 +290,9 @@ void renderThreadp(
 	bool* record = nullptr,
 	Shape* dn = nullptr) {
 	//PREPARE RECORD
-	const char recordOutput[]{ "./tmp" };
-	if (!std::filesystem::exists(recordOutput)) {
-		std::filesystem::create_directory(recordOutput);
-	}
 	bool preco = (record != nullptr ? *record : false),
 		featureRec = record != nullptr;
-	std::vector<Texture> records;
+	std::queue<Texture> records;
 	//END PREPARE RECORD
 
 	//GL CONTEXT
@@ -316,12 +312,13 @@ void renderThreadp(
 				window->setFramerateLimit(fps[preco ? 0 : 1]);
 			}
 			if (preco) {
-				if (records.max_size() >= records.size() + 1) {
+				if (10000 >= records.size() + 1) {
 					sf::Vector2u windowSize = window->getSize();
 					sf::Texture texture;
 					texture.create(windowSize.x, windowSize.y);
 					texture.update(*window);
-					records.push_back(texture);
+					records.push(texture);
+					//records.push_back(texture);
 				}
 				else
 					*record = false;
@@ -361,8 +358,9 @@ void renderThreadp(
 		unsigned char* calced = (unsigned char*)malloc(sizevid * 3);
 		VideoCapture vc;
 		vc.Init(size[0], size[1], 24, 400000);
-		for (unsigned int x{ 0 }; x < records.size(); x++) {
-			Image i = records[x].copyToImage();
+		while (records.size() > 0) {
+			Image i = records.front().copyToImage();
+			records.pop();
 			const unsigned char* ux = i.getPixelsPtr();
 			//RGBA TO RGB:
 			for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
