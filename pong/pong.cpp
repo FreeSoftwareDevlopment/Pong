@@ -342,9 +342,13 @@ void renderThreadp(
 	//SAVE RECORDED IMAGES
 	if (records.size() > 0) {
 		const char rp[] = " Recorded Pictures";
-		MessageBoxA(NULL,
+		if (MessageBoxA(NULL,
 			("We need to Save your " + std::to_string(records.size()) + rp).c_str(),
-			"Pong", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+			"Pong", MB_OKCANCEL
+			| MB_DEFBUTTON2 |
+			MB_ICONINFORMATION |
+			MB_TOPMOST) == IDCANCEL)
+			return;
 		size_t ds = MAX_PATH * sizeof(char);
 		char* dirname = (char*)malloc(ds);
 		if (dirname == nullptr) {
