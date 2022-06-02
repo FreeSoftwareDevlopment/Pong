@@ -5,8 +5,7 @@
 
 #define pongspeed 400
 #define ballspeed 421
-#define appguid "{03878e53-d462-4c67-9b36-ec7192f49a8b}" /* POWERED BY https://www.guidgen.com/ */
-
+#define appguid "{bb24e364-8716-4593-9629-4cbc759b7a34}"
 using namespace sf;
 
 const char gm[] = "Pong";
