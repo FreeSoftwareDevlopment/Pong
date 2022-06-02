@@ -291,14 +291,18 @@ void renderThreadp(
 	//PREPARE RECORD
 	bool preco = (record != nullptr ? *record : false),
 		featureRec = record != nullptr;
-	std::queue<Texture> records;
+	size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
+
+	unsigned char* calced = (unsigned char*)malloc(sizevid * 3);
+	VideoCapture vc;
+	vc.Init(size[0], size[1], 24, 400000);
 	//END PREPARE RECORD
 
 	//GL CONTEXT
 	window->setActive(true);
 	timer fpsTime;
 	fpsTime.beginTime();
-
+	bool rec = 0;
 	const int fps[]{ 25, 400 };
 
 	window->setFramerateLimit(fps[preco ? 0 : 1]);
@@ -311,16 +315,24 @@ void renderThreadp(
 				window->setFramerateLimit(fps[preco ? 0 : 1]);
 			}
 			if (preco) {
-				if (10000 >= records.size() + 1) {
-					sf::Vector2u windowSize = window->getSize();
-					sf::Texture texture;
-					texture.create(windowSize.x, windowSize.y);
-					texture.update(*window);
-					records.push(texture);
-					//records.push_back(texture);
+				sf::Vector2u windowSize = window->getSize();
+				sf::Texture texture;
+				texture.create(windowSize.x, windowSize.y);
+				texture.update(*window);
+				Image i = texture.copyToImage();
+				const unsigned char* ux = i.getPixelsPtr();
+				//RGBA TO RGB:
+				for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
+					if (xct >= 3) {
+						xct = 0;
+						continue;
+					}
+					calced[srx] = ux[xr];
+					xct++;
+					srx++;
 				}
-				else
-					*record = false;
+				vc.AddFrame(calced);
+				rec = 1;
 			}
 		}
 
@@ -342,69 +354,35 @@ void renderThreadp(
 	}
 
 	//SAVE RECORDED IMAGES
-	if (records.size() > 0) {
-		const char rp[] = " Recorded Video";
-		if (MessageBoxA(NULL,
-			("We need to Save your " + std::to_string(records.size()) + rp +
-				"\nThis can take some time").c_str(),
-			gm, MB_OKCANCEL
-			| MB_DEFBUTTON2 |
-			MB_ICONINFORMATION |
-			MB_TOPMOST) == IDCANCEL)
-			return;
+	free(calced);
+	vc.Finish();
 
-		size_t sizevid = size[0] * size[1] * sizeof(unsigned char);
-		unsigned char* calced = (unsigned char*)malloc(sizevid * 3);
-		VideoCapture vc;
-		vc.Init(size[0], size[1], 24, 400000);
-		while (records.size() > 0) {
-			Image i = records.front().copyToImage();
-			records.pop();
-			const unsigned char* ux = i.getPixelsPtr();
-			//RGBA TO RGB:
-			for (size_t xr{ 0 }, xct{ 0 }, srx{ 0 }; xr < (sizevid * 4); xr++) {
-				if (xct >= 3) {
-					xct = 0;
-					continue;
-				}
-				calced[srx] = ux[xr];
-				xct++;
-				srx++;
-			}
-
-			vc.AddFrame(calced);
-		}
-		free(calced);
-		vc.Finish();
-
-		//MOVE
-		auto dp = std::string(getDocPath()),
-			np = std::string(rndst(10));
-	retryFs:
-
-		if (std::filesystem::exists(dp + "\\" + np + ".mp4")) {
-			np = rndst(16);
-			goto retryFs;
-		}
-
-		std::string cfn = (dp + "\\" + np + ".mp4");
-		const char tmpn[] = "recordTMP.mp4";
-		bool ok = false;
-		if (std::filesystem::exists(tmpn)) {
-			ok = std::filesystem::copy_file(tmpn, cfn.c_str());
-			if (ok)
-				std::filesystem::remove(tmpn);
-		}
-
-		if (ok)
-			MessageBoxA(NULL,
-				("Saved all your " + std::to_string(records.size()) + rp +
-					" to \"" + cfn + "\"").c_str(),
-				gm, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-		else
-			MessageBoxA(NULL,
-				("Failue during Save of your" + std::string(rp)).c_str(),
-				gm, MB_OK | MB_ICONHAND | MB_TOPMOST);
-		//}
+	//MOVE
+	auto dp = std::string(getDocPath()),
+		np = std::string(rndst(10));
+retryFs:
+	if (!rec) return;
+	if (std::filesystem::exists(dp + "\\" + np + ".mp4")) {
+		np = rndst(16);
+		goto retryFs;
 	}
+
+	std::string cfn = (dp + "\\" + np + ".mp4");
+	const char tmpn[] = "recordTMP.mp4";
+	bool ok = false;
+	if (std::filesystem::exists(tmpn)) {
+		ok = std::filesystem::copy_file(tmpn, cfn.c_str());
+		if (ok)
+			std::filesystem::remove(tmpn);
+	}
+
+	if (ok)
+		MessageBoxA(NULL,
+			("Saved your Video to \"" + cfn + "\"").c_str(),
+			gm, MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+	else
+		MessageBoxA(NULL,
+			"Failue during Save of your Video",
+			gm, MB_OK | MB_ICONHAND | MB_TOPMOST);
+	//}
 }
