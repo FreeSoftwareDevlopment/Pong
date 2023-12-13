@@ -1,0 +1,2 @@
+#define CONTROLLERLIBRARY_API __declspec(dllexport)
+#define CONTROLLERLIBRARY_API __declspec(dllimport)

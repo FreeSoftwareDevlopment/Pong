@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xhelper", "xhelper\xhelper.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodule", "submodule", "{19509742-6485-4EDA-8B75-4F572BD03B55}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "controllerLibrary", "controllerLibrary\controllerLibrary.vcxproj", "{1C9DC231-D380-4C84-81A1-33FAEE919443}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,12 +35,21 @@ Global
 		{372EBBB2-AE70-4D13-899C-89A7CE307C30}.Release|x64.Build.0 = Release|x64
 		{372EBBB2-AE70-4D13-899C-89A7CE307C30}.Release|x86.ActiveCfg = Release|Win32
 		{372EBBB2-AE70-4D13-899C-89A7CE307C30}.Release|x86.Build.0 = Release|Win32
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Debug|x64.ActiveCfg = Debug|x64
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Debug|x64.Build.0 = Debug|x64
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Debug|x86.ActiveCfg = Debug|Win32
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Debug|x86.Build.0 = Debug|Win32
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Release|x64.ActiveCfg = Release|x64
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Release|x64.Build.0 = Release|x64
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Release|x86.ActiveCfg = Release|Win32
+		{1C9DC231-D380-4C84-81A1-33FAEE919443}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{372EBBB2-AE70-4D13-899C-89A7CE307C30} = {19509742-6485-4EDA-8B75-4F572BD03B55}
+		{1C9DC231-D380-4C84-81A1-33FAEE919443} = {19509742-6485-4EDA-8B75-4F572BD03B55}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DB71EB0C-7BB8-4F18-BF8A-07737E15FB55}

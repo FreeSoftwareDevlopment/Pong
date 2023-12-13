@@ -4,8 +4,10 @@
 #include "includes.h"
 
 #define pongspeed 400
+#define controllerSpeedMultiply 2
 #define ballspeed 421
 #define appguid "{bb24e364-8716-4593-9629-4cbc759b7a34}"
+#define VIBRATION_MULTIPLY 257 // MAX: 257
 using namespace sf;
 
 const char gm[] = "Pong";
@@ -21,7 +23,7 @@ void renderThreadp(
 std::string createHelpText(bool muted, int* score, bool record = false) {
 	return std::string("Keys:\n") +
 		std::string((!record) ? "Record" : "Stop Record") +
-		std::string(": R  \n") +
+		std::string(": R / Gamepad Start  \n") +
 #ifdef useAudio
 		std::string(muted ? "Music" : "Mute") +
 		std::string(": M  \n") +
@@ -50,6 +52,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
 	RenderWindow window(VideoMode(size[0], size[1]), L"Pong - \uAC8C\uC784");
 	HWND windowhandle = window.getSystemHandle();
+	CcontrollerLibrary* controller1 = new CcontrollerLibrary();
 
 	/* RANDOM INIT */
 	rInit();
@@ -158,6 +161,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	window.setActive(false);
 	std::thread renderThread(renderThreadp, &window, &d, &fps, &size[0], &record[0], &c3);
 
+	bool controllerOK = controller1->isReady();
+	bool controllerKEYRECORD[2]{ false, false };
+
 	while (window.isOpen()) {
 		record[1] = Keyboard::isKeyPressed(Keyboard::Key::R);
 		if (record[1] != record[2]) {
@@ -246,6 +252,32 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 			change = false;
 		}
 		{
+			if (controllerOK) { // CONTROLLER
+				auto c = controller1->update(); // Fetch Gamepad
+
+				controllerKEYRECORD[0] = c->buttons & 0x0010;
+				if (controllerKEYRECORD[1] != controllerKEYRECORD[0] && controllerKEYRECORD[0]) record[0] = !record[0]; // Gamepad Start
+				controllerKEYRECORD[1] = controllerKEYRECORD[0];
+
+				if(c->buttons & 0x0020) window.close();// Gamepad Back
+
+
+				bool b = c->nR.y >= 0.f, sec = c->rightMagnitude > 0.001f;
+				xhelp.pongmove(&pongHigth[1],
+					b && sec,
+					!b && sec,
+					pongTime.getTimer() * pongspeed * c->rightMagnitude * controllerSpeedMultiply);
+				if (sec) keyboard = false;
+				b = c->nL.y >= 0.f;
+				sec = c->leftMagnitude > 0.001f;
+				xhelp.pongmove(&pongHigth[0],
+					b && sec,
+					!b && sec,
+					pongTime.getTimer() * pongspeed * c->leftMagnitude * controllerSpeedMultiply);
+				if (sec) keyboard = false;
+				controller1->vibrateActiveController(c->leftTrigger * VIBRATION_MULTIPLY, c->rightTrigger * VIBRATION_MULTIPLY);
+			} // CONTROLLER END
+
 			xhelp.pongmove(&pongHigth[0],
 				Keyboard::isKeyPressed(Keyboard::Key::W) && keyboard,
 				Keyboard::isKeyPressed(Keyboard::Key::S) && keyboard,
@@ -271,6 +303,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		}
 		pos[1] = pos[0];//STORE OLD POS IN STORE 1
 	}
+
+	delete controller1;
 #ifdef useAudio
 	if (playAudio)
 		mciSendStringA("close mp3", NULL, 0, NULL);
