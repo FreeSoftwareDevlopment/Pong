@@ -54,7 +54,6 @@ VideoCapture::VideoCapture() {
 		frameCounter = 0;
 
 		// Initialize libavcodec
-		av_register_all();
 		av_log_set_callback(avlog_cb);
 	}
 }

@@ -44,14 +44,14 @@ public:
 
 private:
 
-	AVOutputFormat* oformat;
+	const AVOutputFormat* oformat;
 	AVFormatContext* ofctx;
 
 
 	AVStream* videoStream;
 	AVFrame* videoFrame;
 
-	AVCodec* codec;
+	const AVCodec* codec;
 	AVCodecContext* cctx;
 
 	SwsContext* swsCtx;

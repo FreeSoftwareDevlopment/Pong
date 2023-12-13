@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pong", "pong\pong.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xhelper", "xhelper\xhelper.vcxproj", "{372EBBB2-AE70-4D13-899C-89A7CE307C30}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodule", "submodule", "{19509742-6485-4EDA-8B75-4F572BD03B55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +36,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{372EBBB2-AE70-4D13-899C-89A7CE307C30} = {19509742-6485-4EDA-8B75-4F572BD03B55}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DB71EB0C-7BB8-4F18-BF8A-07737E15FB55}
